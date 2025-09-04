@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2025
+  ~
+  ~ This file is part of QUIK.
+  ~
+  ~ QUIK is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ QUIK is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with QUIK.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<resources>
+    <!-- Google Messages patterns -->
+    <string name="emoji_reaction_google_messages_added">^\u200A\u200B(.+?)\u200B to \u201C\u200A(.+?)\u200A\u201D\u200A$</string>
+    <string name="emoji_reaction_google_messages_removed">^\u200ARemoved \u200C(.+?)\u200C from \u201C\u200A(.+?)\u200A\u201D\u200A$</string>
+
+    <!-- iOS generic patterns -->
+    <string name="emoji_reaction_ios_generic_added">^Reacted (.+?) to \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_generic_removed">^Removed (.+?) from \u201C(.+?)\u201D$</string>
+
+    <!-- iOS tapback patterns -->
+    <string name="emoji_reaction_ios_loved_added">^Loved \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_loved_removed">^Removed a heart from \u201C(.+?)\u201D$</string>
+
+    <string name="emoji_reaction_ios_liked_added">^Liked \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_liked_removed">^Removed a like from \u201C(.+?)\u201D$</string>
+
+    <string name="emoji_reaction_ios_disliked_added">^Disliked \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_disliked_removed">^Removed a dislike from \u201C(.+?)\u201D$</string>
+
+    <string name="emoji_reaction_ios_laughed_added">^Laughed at \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_laughed_removed">^Removed a laugh from \u201C(.+?)\u201D$</string>
+
+    <string name="emoji_reaction_ios_emphasized_added">^Emphasized \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_emphasized_removed">^Removed an exclamation from \u201C(.+?)\u201D$</string>
+
+    <string name="emoji_reaction_ios_questioned_added">^Questioned \u201C(.+?)\u201D$</string>
+    <string name="emoji_reaction_ios_questioned_removed">^Removed a question mark from \u201C(.+?)\u201D$</string>
+</resources>
