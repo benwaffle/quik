@@ -261,11 +261,13 @@ open class MessageRepositoryImpl @Inject constructor(
             tryOrNull(true) {
                 // chunked so where clause doesn't get too long if there are many threads
                 threadIds.forEach {
+                    val threadUri = ContentUris.withAppendedId(
+                        Telephony.MmsSms.CONTENT_CONVERSATIONS_URI,
+                        it
+                    )
+                    Timber.d("[MMS_DB] update %s set read=%s where read=%s", threadUri, read, if (read) 0 else 1)
                     countUpdated += context.contentResolver.update(
-                        ContentUris.withAppendedId(
-                            Telephony.MmsSms.CONTENT_CONVERSATIONS_URI,
-                            it
-                        ),
+                        threadUri,
                         contentValuesOf(Sms.READ to read),
                         "${Sms.READ} = ${if (read) 0 else 1}",
                         null
@@ -281,6 +283,7 @@ open class MessageRepositoryImpl @Inject constructor(
                 val values = contentValuesOf(Sms.SEEN to seen)
                 val whereClause ="${Sms.SEEN} = ${if (seen) 0 else 1} " +
                         "and ${Sms.THREAD_ID} in (${it.joinToString(",")})"
+                Timber.d("[MMS_DB] update content://sms seen=$seen where=$whereClause (conversations: ${it})")
 
                 // sms messages
                 tryOrNull(true) {
@@ -294,6 +297,7 @@ open class MessageRepositoryImpl @Inject constructor(
 
                 // mms messages
                 tryOrNull(true) {
+                    Timber.d("[MMS_DB] update content://mms seen=$seen where=$whereClause (conversations: ${it})")
                     countUpdated += context.contentResolver.update(
                         Mms.CONTENT_URI,
                         values,
@@ -944,8 +948,11 @@ open class MessageRepositoryImpl @Inject constructor(
 
             realm.executeTransaction { messages.deleteAllFromRealm() }
 
-            uris.forEach {
-                uri -> context.contentResolver.delete(uri, null, null)
+            uris.forEach { uri ->
+                if (uri.toString().startsWith("content://mms")) {
+                    Timber.d("[MMS_DB] delete %s", uri)
+                }
+                context.contentResolver.delete(uri, null, null)
             }
         }
 
@@ -974,8 +981,11 @@ open class MessageRepositoryImpl @Inject constructor(
 
             realm.executeTransaction { messages.deleteAllFromRealm() }
 
-            uris.forEach {
-                uri -> context.contentResolver.delete(uri, null, null)
+            uris.forEach { uri ->
+                if (uri.toString().startsWith("content://mms")) {
+                    Timber.d("[MMS_DB] delete %s", uri)
+                }
+                context.contentResolver.delete(uri, null, null)
             }
         }
 }

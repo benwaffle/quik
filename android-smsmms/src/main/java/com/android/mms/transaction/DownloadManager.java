@@ -67,6 +67,15 @@ public class DownloadManager {
                 .path(fileName)
                 .scheme(ContentResolver.SCHEME_CONTENT)
                 .build();
+        try {
+            Timber.d("[MMS_FILE] prepare download location=%s file=%s contentUri=%s cacheDir=%s byPush=%s subId=%s",
+                    location,
+                    mDownloadFile.getAbsolutePath(),
+                    contentUri,
+                    context.getCacheDir(),
+                    byPush,
+                    subscriptionId);
+        } catch (Throwable t) { /* ignore */ }
         Intent download = new Intent(receiver.mAction);
         download.putExtra(MmsReceivedReceiver.EXTRA_FILE_PATH, mDownloadFile.getPath());
         download.putExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL, location);
@@ -87,6 +96,8 @@ public class DownloadManager {
     }
 
     private void grantUriPermission(Context context, Uri contentUri) {
+        Timber.d("[MMS_FILE] grantUriPermission to=%s for=%s",
+                context.getPackageName() + ".MmsFileProvider", contentUri);
         context.grantUriPermission(context.getPackageName() + ".MmsFileProvider",
                 contentUri,
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -108,6 +119,11 @@ public class DownloadManager {
             PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MMS DownloadReceiver");
             wakeLock.acquire(60 * 1000);
 
+            Timber.d("[MMS_FILE] result action=%s extras(path=%s, location=%s) resultCode=%s",
+                    intent.getAction(),
+                    intent.getStringExtra(MmsReceivedReceiver.EXTRA_FILE_PATH),
+                    intent.getStringExtra(MmsReceivedReceiver.EXTRA_LOCATION_URL),
+                    getResultCode());
             Intent newIntent = (Intent) intent.clone();
             newIntent.setAction(MmsReceivedReceiver.MMS_RECEIVED);
             BroadcastUtils.sendExplicitBroadcast(context, newIntent, MmsReceivedReceiver.MMS_RECEIVED);

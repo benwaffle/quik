@@ -35,6 +35,9 @@ class MessageDetailsFormatter @Inject constructor(
     fun format(message: Message): String {
         val builder = StringBuilder()
 
+        builder.appendLine("ID: ${message.id}")
+        builder.appendLine("msgstr: ${message}")
+
         message.type
                 .takeIf { it.isNotBlank() }
                 ?.toUpperCase()
@@ -98,6 +101,15 @@ class MessageDetailsFormatter @Inject constructor(
                 .takeIf { it != 0 && message.isSms() }
                 ?.let { context.getString(R.string.compose_details_error_code, it) }
                 ?.let(builder::appendln)
+
+        builder.appendLine(
+            "isEmojiReaction: ${message.isEmojiReaction}"
+        )
+
+        builder.appendLine(
+            "Emoji reactions: " +
+            message.emojiReactions.joinToString(",") { er -> er.toString() }
+        )
 
         return builder.toString().trim()
     }

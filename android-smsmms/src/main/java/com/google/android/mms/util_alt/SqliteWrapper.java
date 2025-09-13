@@ -25,6 +25,7 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.widget.Toast;
 import timber.log.Timber;
+import java.util.Set;
 
 public final class SqliteWrapper {
     private static final String SQLITE_EXCEPTION_DETAIL_MESSAGE
@@ -86,6 +87,8 @@ public final class SqliteWrapper {
     public static int update(Context context, ContentResolver resolver, Uri uri,
             ContentValues values, String where, String[] selectionArgs) {
         try {
+            // Debug logging for MMS provider writes
+            logWrite("update", uri, values, where, selectionArgs);
             return resolver.update(uri, values, where, selectionArgs);
         } catch (SQLiteException e) {
             Timber.e(e, "Catch a SQLiteException when update: ");
@@ -97,6 +100,8 @@ public final class SqliteWrapper {
     public static int delete(Context context, ContentResolver resolver, Uri uri,
             String where, String[] selectionArgs) {
         try {
+            // Debug logging for MMS provider deletes
+            logWrite("delete", uri, null, where, selectionArgs);
             return resolver.delete(uri, where, selectionArgs);
         } catch (SQLiteException e) {
             Timber.e(e, "Catch a SQLiteException when delete: ");
@@ -108,11 +113,55 @@ public final class SqliteWrapper {
     public static Uri insert(Context context, ContentResolver resolver,
             Uri uri, ContentValues values) {
         try {
+            // Debug logging for MMS provider inserts
+            logWrite("insert", uri, values, null, null);
             return resolver.insert(uri, values);
         } catch (SQLiteException e) {
             Timber.e(e, "Catch a SQLiteException when insert: ");
             checkSQLiteException(context, e);
             return null;
+        }
+    }
+
+    private static void logWrite(String op, Uri uri, ContentValues values, String where, String[] selectionArgs) {
+        try {
+            if (uri == null) return;
+            // Only log MMS/MMS-SMS provider writes to reduce noise
+            final String uriStr = uri.toString();
+            if (!(uriStr.startsWith("content://mms") || uriStr.startsWith("content://mms-sms"))) return;
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("[MMS_DB] ").append(op).append(" ").append(uriStr);
+            if (where != null) {
+                sb.append(" where=").append(where);
+                if (selectionArgs != null && selectionArgs.length > 0) {
+                    sb.append(" args=");
+                    for (int i = 0; i < selectionArgs.length; i++) {
+                        if (i > 0) sb.append(",");
+                        sb.append("[").append(i).append("]=").append(selectionArgs[i]);
+                    }
+                }
+            }
+            if (values != null) {
+                sb.append(" values={");
+                // Render values as key=value pairs with a modest truncation
+                Set<String> keys = values.keySet();
+                boolean first = true;
+                for (String key : keys) {
+                    if (!first) sb.append(", "); else first = false;
+                    Object v = values.get(key);
+                    String vs = String.valueOf(v);
+                    if (vs != null && vs.length() > 160) {
+                        vs = vs.substring(0, 160) + "…";
+                    }
+                    sb.append(key).append("=").append(vs);
+                }
+                sb.append("}");
+            }
+            Timber.i(sb.toString());
+        } catch (Throwable t) {
+            // Never let logging break provider operations
+            Timber.w(t, "Failed to log MMS provider write");
         }
     }
 }

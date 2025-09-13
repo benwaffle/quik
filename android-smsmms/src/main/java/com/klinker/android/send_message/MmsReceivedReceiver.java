@@ -80,7 +80,20 @@ public class MmsReceivedReceiver extends BroadcastReceiver {
         Timber.v("MMS has finished downloading, persisting it to the database");
 
         String path = intent.getStringExtra(EXTRA_FILE_PATH);
-        Timber.v(path);
+        Timber.v("[MMS_FILE] receive path=%s action=%s extras(location=%s, trigger_push=%s, uri=%s)",
+                path,
+                intent != null ? intent.getAction() : null,
+                intent != null ? intent.getStringExtra(EXTRA_LOCATION_URL) : null,
+                intent != null ? intent.getBooleanExtra(EXTRA_TRIGGER_PUSH, false) : false,
+                intent != null ? intent.getParcelableExtra(EXTRA_URI) : null);
+        try {
+            if (path != null) {
+                java.io.File f = new java.io.File(path);
+                Timber.d("[MMS_FILE] pre-read exists=%s length=%s cacheDir=%s",
+                        f.exists(), f.exists() ? f.length() : -1,
+                        context != null ? context.getCacheDir() : null);
+            }
+        } catch (Throwable t) { /* ignore */ }
 
         FileInputStream reader = null;
         Uri messageUri = null;

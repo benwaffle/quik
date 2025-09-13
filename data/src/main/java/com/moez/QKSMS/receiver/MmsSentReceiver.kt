@@ -51,6 +51,7 @@ class MmsSentReceiver : BroadcastReceiver() {
                 Timber.v("MMS has finished sending, marking it as so in the database")
                 val values = ContentValues(1)
                 values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_SENT)
+                Timber.d("[MMS_DB] update %s values=%s", uri, values)
                 SqliteWrapper.update(context, context.contentResolver, uri, values, null, null)
             }
 
@@ -61,6 +62,7 @@ class MmsSentReceiver : BroadcastReceiver() {
 
                     val values = ContentValues(1)
                     values.put(Telephony.Mms.MESSAGE_BOX, Telephony.Mms.MESSAGE_BOX_FAILED)
+                    Timber.d("[MMS_DB] update content://mms _id=%s values=%s", messageId, values)
                     SqliteWrapper.update(context, context.contentResolver, Telephony.Mms.CONTENT_URI, values,
                             "${Telephony.Mms._ID} = ?", arrayOf(messageId.toString()))
 
@@ -70,6 +72,7 @@ class MmsSentReceiver : BroadcastReceiver() {
                     val errorTypeValues = ContentValues(1)
                     errorTypeValues.put(Telephony.MmsSms.PendingMessages.ERROR_TYPE,
                             Telephony.MmsSms.ERR_TYPE_GENERIC_PERMANENT)
+                    Timber.d("[MMS_DB] update PendingMessages msg_id=%s values=%s", messageId, errorTypeValues)
                     SqliteWrapper.update(context, context.contentResolver, Telephony.MmsSms.PendingMessages.CONTENT_URI,
                             errorTypeValues, "${Telephony.MmsSms.PendingMessages.MSG_ID} = ?",
                             arrayOf(messageId.toString()))

@@ -460,11 +460,11 @@ class ConversationRepositoryImpl @Inject constructor(
         }
 
         threadIds.forEach {
-            context.contentResolver.delete(
-                ContentUris.withAppendedId(TelephonyCompat.THREADS_CONTENT_URI, it),
-                null,
-                null
-            )
+            val threadUri = ContentUris.withAppendedId(TelephonyCompat.THREADS_CONTENT_URI, it)
+            try {
+                timber.log.Timber.d("[MMS_DB] delete %s", threadUri)
+            } catch (_: Throwable) {}
+            context.contentResolver.delete(threadUri, null, null)
         }
     }
 

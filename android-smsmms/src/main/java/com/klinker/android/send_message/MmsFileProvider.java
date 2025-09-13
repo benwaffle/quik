@@ -25,6 +25,7 @@ import android.text.TextUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import timber.log.Timber;
 
 public class MmsFileProvider extends ContentProvider {
     @Override
@@ -64,7 +65,24 @@ public class MmsFileProvider extends ContentProvider {
 
     @Override
     public ParcelFileDescriptor openFile(Uri uri, String fileMode) throws FileNotFoundException {
+        // Debug logging to help diagnose path resolution issues
+        try {
+            Timber.d("[MMS_FILE] openFile uri=%s mode=%s cacheDir=%s path=%s segment=%s",
+                    uri,
+                    fileMode,
+                    getContext() != null ? getContext().getCacheDir() : null,
+                    uri.getPath(),
+                    uri.getLastPathSegment());
+        } catch (Throwable t) {
+            // Ignore logging errors
+        }
+
         File file = new File(getContext().getCacheDir(), uri.getPath());
+        try {
+            Timber.d("[MMS_FILE] resolved file=%s exists=%s", file.getAbsolutePath(), file.exists());
+        } catch (Throwable t) {
+            // ignore
+        }
         int mode = (TextUtils.equals(fileMode, "r") ? ParcelFileDescriptor.MODE_READ_ONLY :
                 ParcelFileDescriptor.MODE_WRITE_ONLY
                         |ParcelFileDescriptor.MODE_TRUNCATE

@@ -33,6 +33,7 @@ import dev.octoshrimpy.quik.model.Message
 import dev.octoshrimpy.quik.util.Preferences
 import dev.octoshrimpy.quik.util.SqliteWrapper
 import dev.octoshrimpy.quik.util.tryOrNull
+import timber.log.Timber
 import javax.inject.Inject
 
 class CursorToMessageImpl @Inject constructor(
@@ -125,6 +126,17 @@ class CursorToMessageImpl @Inject constructor(
                             ?.let { EncodedStringValue(subjectCharset, it).string } ?: ""
                     textContentType = ""
                     attachmentType = Message.AttachmentType.NOT_LOADED
+
+                    // Debug trace for MMS mapping during sync
+                    Timber.d("MMS map: id=%d thread=%d box=%d m_type=%d status=%d seen=%s addr='%s' subject='%s'",
+                        contentId,
+                        threadId,
+                        boxId,
+                        messageType,
+                        mmsStatus,
+                        seen,
+                        address,
+                        subject)
                 }
             }
         }
