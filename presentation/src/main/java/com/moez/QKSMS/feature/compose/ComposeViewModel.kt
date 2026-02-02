@@ -125,6 +125,7 @@ class ComposeViewModel @Inject constructor(
     private val prefs: Preferences,
     private val sendExistingMessage: SendExistingMessage,
     private val sendNewMessage: SendNewMessage,
+    private val sendEmojiReaction: dev.octoshrimpy.quik.interactor.SendEmojiReaction,
     private val subscriptionManager: SubscriptionManagerCompat,
     private val saveImage: SaveImage,
 ) : QkViewModel<ComposeView, ComposeState>(ComposeState(
@@ -764,12 +765,17 @@ class ComposeViewModel @Inject constructor(
             .mapNotNull { messageId -> messageRepo.getMessage(messageId) }
             .withLatestFrom(conversation) { message, conv ->
                 message.emojiReactions.map { reaction ->
-                    val contactName = conv.recipients
-                        .firstOrNull { recipient ->
-                            phoneNumberUtils.compare(recipient.address, reaction.senderAddress)
-                        }
-                        ?.getDisplayName()
-                        ?: reaction.senderAddress
+                    val userNumbers = subscriptionManager.activeSubscriptionInfoList.map { it.number }
+                    val contactName = if (userNumbers.any { phoneNumberUtils.compare(it, reaction.senderAddress) }) {
+                        context.getString(R.string.compose_reaction_you)
+                    } else {
+                        conv.recipients
+                            .firstOrNull { recipient ->
+                                phoneNumberUtils.compare(recipient.address, reaction.senderAddress)
+                            }
+                            ?.getDisplayName()
+                            ?: reaction.senderAddress
+                    }
                     "${reaction.emoji} $contactName"
                 }
             }
@@ -1257,6 +1263,55 @@ class ComposeViewModel @Inject constructor(
             }
             .autoDisposable(view.scope())
             .subscribe()
+
+        // Send emoji reaction
+        view.sendReactionIntent
+            .observeOn(Schedulers.io())
+            .withLatestFrom(state, conversation) { (messageId, emoji), state, conversation ->
+                val subId = state.subscription?.subscriptionId ?: -1
+                sendEmojiReaction.execute(
+                    dev.octoshrimpy.quik.interactor.SendEmojiReaction.Params(
+                        subId = subId,
+                        threadId = conversation.id,
+                        targetMessageId = messageId,
+                        emoji = emoji,
+                        isRemoval = false
+                    )
+                )
+            }
+            .autoDisposable(view.scope())
+            .subscribe()
+
+        // Remove emoji reaction
+        view.reactionRemovalClickIntent
+            .observeOn(Schedulers.io())
+            .withLatestFrom(state, conversation) { (messageId, emoji), state, conversation ->
+                val subId = state.subscription?.subscriptionId ?: -1
+                sendEmojiReaction.execute(
+                    dev.octoshrimpy.quik.interactor.SendEmojiReaction.Params(
+                        subId = subId,
+                        threadId = conversation.id,
+                        targetMessageId = messageId,
+                        emoji = emoji,
+                        isRemoval = true
+                    )
+                )
+            }
+            .autoDisposable(view.scope())
+            .subscribe()
+
+        // Long-press on message to show emoji reaction picker
+        view.messageLongClickIntent
+            .mapNotNull { messageId -> messageRepo.getMessage(messageId) }
+            .autoDisposable(view.scope())
+            .subscribe { message ->
+                // Find user's existing reaction by checking if the reaction message isMe()
+                val userEmoji = message.emojiReactions.firstOrNull { reaction ->
+                    messageRepo.getMessage(reaction.reactionMessageId)?.isMe() == true
+                }?.emoji
+
+                view.showEmojiReactionPicker(message, userEmoji)
+            }
 
         // View QKSMS+
         view.viewQksmsPlusIntent

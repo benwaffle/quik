@@ -39,4 +39,20 @@ interface EmojiReactionRepository {
         realm: Realm,
         onProgress: (SyncRepository.SyncProgress) -> Unit
     )
+
+    fun formatReactionSms(emoji: String, targetMessageText: String, isRemoval: Boolean): String
+
+    fun saveOutgoingReaction(
+        subId: Int,
+        reactionMessageId: Long,
+        targetMessage: Message,
+        emoji: String,
+        threadId: Long
+    )
+
+    fun removeOutgoingReaction(
+        subId: Int,
+        targetMessage: Message,
+        emoji: String
+    )
 }

@@ -439,7 +439,10 @@ open class MessageRepositoryImpl @Inject constructor(
                     }
                 }
 
+                val outgoingMessage = this
                 insertOrUpdate()
+
+                outgoingMessage
             }
         }
     }

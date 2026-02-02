@@ -120,6 +120,8 @@ class MessagesAdapter @Inject constructor(
     val resendClicks: Subject<Long> = PublishSubject.create()
     val partContextMenuRegistrar: Subject<View> = PublishSubject.create()
     val reactionClicks: Subject<Long> = PublishSubject.create()
+    val reactionRemovalClicks: Subject<Pair<Long, String>> = PublishSubject.create()
+    val messageLongClicks: Subject<Long> = PublishSubject.create()
 
     var data: Pair<Conversation, RealmResults<Message>>? = null
         set(value) {
@@ -384,6 +386,11 @@ class MessagesAdapter @Inject constructor(
                     isMe = message.isMe()
                 )
             )
+
+            setOnLongClickListener {
+                messageLongClicks.onNext(message.id)
+                true
+            }
         }
 
         // Bind the parts
@@ -414,7 +421,25 @@ class MessagesAdapter @Inject constructor(
                 }
 
                 holder.reactionText?.text = reactionText
-                holder.reactionText?.setOnClickListener { reactionClicks.onNext(message.id) }
+
+                // Check if there's a single reaction from the user
+                val userReaction = if (totalCount == 1) {
+                    val reaction = reactions.firstOrNull()
+                    val reactionMessage = reaction?.let { r ->
+                        data?.second?.firstOrNull { it.id == r.reactionMessageId }
+                    }
+                    if (reactionMessage?.isMe() == true) reaction else null
+                } else null
+
+                // If it's the user's own single reaction, tapping removes it
+                if (userReaction != null) {
+                    holder.reactionText?.setOnClickListener {
+                        reactionRemovalClicks.onNext(message.id to userReaction.emoji)
+                    }
+                } else {
+                    holder.reactionText?.setOnClickListener { reactionClicks.onNext(message.id) }
+                }
+
                 reactionsContainer.setVisible(true)
             } else {
                 reactionsContainer.setVisible(false)

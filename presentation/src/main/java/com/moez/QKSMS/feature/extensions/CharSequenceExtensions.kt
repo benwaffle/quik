@@ -14,7 +14,12 @@ fun CharSequence.isEmojiOnly(considerWhitespace: Boolean = false): Boolean {
     if (cs.isEmpty())
         return false
 
-    return when (val spannable = EmojiCompat.get().process(
+    val emojiCompat = EmojiCompat.get()
+    if (emojiCompat.loadState != EmojiCompat.LOAD_STATE_SUCCEEDED) {
+        return false
+    }
+
+    return when (val spannable = emojiCompat.process(
         cs,
         0,
         (cs.length - 1),

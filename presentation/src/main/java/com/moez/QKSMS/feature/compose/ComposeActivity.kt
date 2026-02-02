@@ -191,6 +191,9 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val clearCurrentMessageIntent: Subject<Boolean> = PublishSubject.create()
     override val messageLinkAskIntent: Subject<Uri> by lazy { messageAdapter.messageLinkClicks }
     override val reactionClickIntent: Subject<Long> by lazy { messageAdapter.reactionClicks }
+    override val reactionRemovalClickIntent: Subject<Pair<Long, String>> by lazy { messageAdapter.reactionRemovalClicks }
+    override val sendReactionIntent: Subject<Pair<Long, String>> = PublishSubject.create()
+    override val messageLongClickIntent: Subject<Long> by lazy { messageAdapter.messageLongClicks }
     override val speechRecogniserIntent by lazy { speechToTextIcon.clicks() }
     override val shadeIntent by lazy { shadeBackground.clicks() }
     override val recordAudioStartStopRecording: Subject<Boolean> = PublishSubject.create()
@@ -763,6 +766,16 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             .setTitle(R.string.compose_reactions_title)
             .setMessage(reactions.joinToString("\n"))
             .show()
+    }
+
+    override fun showEmojiReactionPicker(message: dev.octoshrimpy.quik.model.Message, userEmoji: String?) {
+        EmojiReactionPickerDialog(this, message, userEmoji) { emoji, isRemoval ->
+            if (isRemoval) {
+                reactionRemovalClickIntent.onNext(message.id to emoji)
+            } else {
+                sendReactionIntent.onNext(message.id to emoji)
+            }
+        }.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
